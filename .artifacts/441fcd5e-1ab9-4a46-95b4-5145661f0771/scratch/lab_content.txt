@@ -1,0 +1,863 @@
+﻿INT4211 – LẬP TRÌNH TRÊN CÁC THIẾT BỊ DI ĐỘNG  ·  HƯỚNG DẪN THỰC HÀNH
+LAB A11
+Dialog, Toast & Menu
+Tuần 11 · 150 phút online + tự làm ở nhà · Cá nhân · Java + XML · Đề cương: mục 3.11–3.12 · CLO2 · Nâng cấp app Lab A9
+0. Tổng quan
+Mục tiêu — sau bài lab, bạn có thể:
+Tạo 
+options menu
+ từ file XML và xử lý lựa chọn trong 
+onOptionsItemSelected
+.
+Tạo 
+context menu
+ cho từng dòng danh sách và lấy đúng vị trí dòng được giữ lâu.
+Dùng 
+AlertDialog
+ để hỏi xác nhận trước khi làm việc không hoàn tác được.
+Tạo 
+hộp thoại tự thiết kế
+ bằng 
+setView
+, có kiểm tra hợp lệ và không tự đóng khi dữ liệu sai.
+Chọn đúng giữa 
+Toast
+, 
+Snackbar
+ và 
+AlertDialog
+; cài đặt chức năng 
+Hoàn tác
+.
+Sản phẩm phải nộp
+#
+Sản phẩm
+Ghi chú
+1
+Repo GitHub 
+A11_<MSSV>
+Nâng cấp app A9: menu, context menu, dialog, Snackbar Hoàn tác
+2
+Báo cáo ngắn (Word/PDF)
+Bảng 8 kịch bản kèm ảnh chụp từng hộp thoại
+3
+Video demo ≤ 2 phút
+Sắp xếp → giữ lâu Sửa → giữ lâu Xóa → Hủy → Xóa → Hoàn tác
+Đây là bản NÂNG CẤP của Lab A9, không phải project mới
+Chép thư mục project A9 thành 
+A11_<MSSV>
+, mở bằng Android Studio.
+Dùng 
+Refactor → Rename
+ để đổi tên gói sang 
+vn.edu.vhu.ltdd.a11dialog
+, và sửa 
+app_name
+ trong 
+strings.xml
+.
+Chạy thử và chắc chắn app vẫn hoạt động TRƯỚC khi viết thêm gì.
+ Nếu bỏ qua bước này, bạn sẽ không biết lỗi đến từ việc đổi tên hay từ code mới.
+Phần 1. Ba cách nói chuyện với người dùng (≈ 15 phút)
+ 
+Toast
+Snackbar
+AlertDialog
+Vị trí
+Nổi giữa màn hình
+Trượt lên từ cạnh dưới
+Giữa màn hình, làm mờ nền
+Chặn thao tác?
+Không
+Không
+Có
+ — phải trả lời mới dùng tiếp được
+Có nút bấm?
+Không
+Một nút (ví dụ Hoàn tác)
+1–3 nút
+Dùng khi
+Báo việc đã xong, không quan trọng
+Báo việc đã xong 
+và
+ cho cơ hội sửa
+Hỏi trước khi làm việc nguy hiểm
+Quy tắc chọn
+Việc 
+không thể hoàn tác
+ (xóa vĩnh viễn, gửi, thanh toán) → hỏi bằng 
+AlertDialog
+.
+Việc 
+hoàn tác được
+ → cứ làm rồi báo bằng 
+Snackbar
+ kèm nút Hoàn tác.
+Việc nhỏ, không cần hành động gì thêm → 
+Toast
+.
+Kiểm chứng trên điện thoại của bạn: Gmail xóa thư 
+không
+ hỏi (có thùng rác, dùng Snackbar Undo), nhưng "xóa tài khoản vĩnh viễn" thì luôn hỏi.
+Phần 2. Options menu (≈ 25 phút)
+2.1. Tạo thư mục res/menu
+Chuột phải thư mục 
+res
+ → 
+New → Android Resource Directory
+ → Resource type: 
+menu
+. Sau đó chuột phải 
+res/menu
+ → 
+New → Menu Resource File
+.
+2.2. res/menu/menu_main.xml
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/menu/menu_main.xml – menu của cả màn hình -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+ 
+    <!-- always: luôn hiện thành biểu tượng trên thanh tiêu đề -->
+    <item
+        android:id="@+id/action_them"
+        android:icon="@android:drawable/ic_input_add"
+        android:title="@string/them_mon"
+        app:showAsAction="always" />
+ 
+    <!-- never: nằm trong menu ba chấm -->
+    <item
+        android:id="@+id/action_sap_xep_ten"
+        android:title="@string/sap_xep_ten"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_sap_xep_gia"
+        android:title="@string/sap_xep_gia"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_xoa_het"
+        android:title="@string/xoa_het"
+        app:showAsAction="never" />
+</menu>
+showAsAction
+Hiển thị thế nào
+always
+Luôn là biểu tượng trên thanh tiêu đề
+ifRoom
+Là biểu tượng nếu còn chỗ, ngược lại vào menu ba chấm
+never
+Luôn nằm trong menu ba chấm
+withText
+Kèm chữ bên cạnh biểu tượng (kết hợp với các giá trị trên)
+Tư duy thiết kế, không chỉ cú pháp:
+ đặt chức năng dùng nhiều nhất (Thêm) là 
+always
+ để bấm nhanh; các chức năng hiếm dùng để 
+never
+ cho thanh tiêu đề gọn gàng.
+2.3. res/menu/menu_context.xml
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/menu/menu_context.xml – menu khi giữ lâu một dòng -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/ctx_sua"
+        android:title="@string/sua_mon" />
+    <item
+        android:id="@+id/ctx_xoa"
+        android:title="@string/xoa" />
+</menu>
+Hai điều dễ sai với menu
+Thư mục phải tên 
+đúng
+ là 
+res/menu
+. Tạo nhầm tên thì 
+R.menu
+ sẽ không tồn tại.
+Quên 
+return true
+ trong 
+onCreateOptionsMenu
+ thì menu 
+không xuất hiện
+ mà chẳng có lỗi nào.
+Phần 3. Giao diện (≈ 10 phút)
+3.1. activity_main.xml
+So với A9, phần nhập liệu ở đầu màn hình đã được bỏ đi — việc thêm món nay làm bằng hộp thoại.
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="12dp">
+ 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/title"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+ 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/huong_dan"
+        android:textSize="12sp"
+        android:textStyle="italic" />
+ 
+    <ListView
+        android:id="@+id/lvMonAn"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"
+        android:divider="#DDDDDD"
+        android:dividerHeight="1dp" />
+ 
+    <TextView
+        android:id="@+id/tvTrong"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/danh_sach_trong"
+        android:textSize="16sp"
+        android:visibility="gone" />
+</LinearLayout>
+3.2. dialog_mon_an.xml — nội dung hộp thoại Thêm/Sửa
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/layout/dialog_mon_an.xml – nội dung của hộp thoại Thêm/Sửa -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="4dp">
+ 
+    <EditText
+        android:id="@+id/edtTen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/hint_ten"
+        android:importantForAutofill="no"
+        android:inputType="text" />
+ 
+    <EditText
+        android:id="@+id/edtMoTa"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/hint_mo_ta"
+        android:importantForAutofill="no"
+        android:inputType="text" />
+ 
+    <EditText
+        android:id="@+id/edtGia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/hint_gia"
+        android:importantForAutofill="no"
+        android:inputType="number" />
+</LinearLayout>
+3.3. res/values/strings.xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">A11_2201234567</string>
+    <string name="title">Lab A11 – Thực đơn có Menu &amp; Dialog</string>
+    <string name="huong_dan">Chạm để xem chi tiết · Giữ lâu để Sửa/Xóa · Menu ⋮ để sắp xếp</string>
+    <string name="desc_anh">Ảnh món ăn</string>
+    <string name="danh_sach_trong">Thực đơn trống — dùng nút + để thêm món</string>
+ 
+    <string name="them_mon">Thêm món</string>
+    <string name="sua_mon">Sửa món</string>
+    <string name="sap_xep_ten">Sắp xếp theo tên</string>
+    <string name="sap_xep_gia">Sắp xếp theo giá</string>
+    <string name="xoa_het">Xóa tất cả</string>
+    <string name="xoa">Xóa</string>
+    <string name="luu">Lưu</string>
+    <string name="huy">Hủy</string>
+    <string name="dong">Đóng</string>
+    <string name="hoan_tac">HOÀN TÁC</string>
+ 
+    <string name="hint_ten">Tên món</string>
+    <string name="hint_mo_ta">Mô tả ngắn</string>
+    <string name="hint_gia">Giá (đồng)</string>
+ 
+    <string name="xac_nhan_xoa">Xác nhận xóa</string>
+    <string name="hoi_xoa">Bạn có chắc muốn xóa \"%1$s\" khỏi thực đơn?</string>
+    <string name="hoi_xoa_het">Xóa toàn bộ %1$d món trong thực đơn?</string>
+    <string name="chi_tiet_format">%1$s\n\nGiá: %2$s</string>
+ 
+    <string name="da_them">Đã thêm món</string>
+    <string name="da_sua">Đã cập nhật món</string>
+    <string name="da_xoa">Đã xóa %1$s</string>
+    <string name="da_xoa_het">Đã xóa toàn bộ thực đơn</string>
+    <string name="da_sap_xep_ten">Đã sắp xếp theo tên</string>
+    <string name="da_sap_xep_gia">Đã sắp xếp theo giá tăng dần</string>
+ 
+    <string name="err_ten">Chưa nhập tên món</string>
+    <string name="err_gia">Giá phải là số</string>
+    <string name="err_gia_duong">Giá phải lớn hơn 0</string>
+</resources>
+Phần 4. MainActivity.java (≈ 50 phút)
+package vn.edu.vhu.ltdd.a11dialog;
+ 
+import android.os.Bundle;
+import android.util.Log;
+import android.view.ContextMenu;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+ 
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+ 
+import com.google.android.material.snackbar.Snackbar;
+ 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+ 
+/** Lab A11 — nâng cấp app A9 bằng Menu, Context menu, Dialog, Toast và Snackbar. */
+public class MainActivity extends AppCompatActivity {
+ 
+    // TODO: thay 2201234567 bằng MSSV của bạn
+    private static final String TAG = "A11_2201234567";
+ 
+    private final List<MonAn> danhSach = new ArrayList<>();
+    private MonAnAdapter adapter;
+    private ListView lvMonAn;
+ 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return insets;
+        });
+ 
+        lvMonAn = findViewById(R.id.lvMonAn);
+        TextView tvTrong = findViewById(R.id.tvTrong);
+ 
+        taoDuLieuMau();
+        adapter = new MonAnAdapter(this, danhSach);
+        lvMonAn.setAdapter(adapter);
+        lvMonAn.setEmptyView(tvTrong);
+ 
+        // Đăng ký context menu: từ đây, giữ lâu một dòng sẽ mở menu ngữ cảnh
+        registerForContextMenu(lvMonAn);
+ 
+        lvMonAn.setOnItemClickListener((parent, view, position, id) ->
+                hienChiTiet(danhSach.get(position)));
+    }
+ 
+    private void taoDuLieuMau() {
+        danhSach.add(new MonAn("Phở bò tái", "Nước dùng ninh xương 8 giờ", 45000, R.drawable.mon1));
+        danhSach.add(new MonAn("Bún chả Hà Nội", "Chả nướng than hoa", 50000, R.drawable.mon2));
+        danhSach.add(new MonAn("Cơm tấm sườn", "Sườn nướng mật ong", 40000, R.drawable.mon3));
+        danhSach.add(new MonAn("Bánh mì thịt nguội", "Pate nhà làm", 25000, R.drawable.mon4));
+    }
+ 
+    // ===================================================================
+    // 1. OPTIONS MENU — menu của cả màn hình, nằm trên thanh tiêu đề
+    // ===================================================================
+ 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;    // true = hiện menu; trả false thì menu không xuất hiện
+    }
+ 
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        // Dùng if–else, KHÔNG dùng switch: từ AGP 8, R.id không còn là hằng số
+        if (id == R.id.action_them) {
+            hienDialogThemSua(-1);
+            return true;
+        } else if (id == R.id.action_sap_xep_ten) {
+            Collections.sort(danhSach, Comparator.comparing(MonAn::getTen));
+            adapter.notifyDataSetChanged();
+            Toast.makeText(this, R.string.da_sap_xep_ten, Toast.LENGTH_SHORT).show();
+            return true;
+        } else if (id == R.id.action_sap_xep_gia) {
+            Collections.sort(danhSach, (a, b) -> Integer.compare(a.getGia(), b.getGia()));
+            adapter.notifyDataSetChanged();
+            Toast.makeText(this, R.string.da_sap_xep_gia, Toast.LENGTH_SHORT).show();
+            return true;
+        } else if (id == R.id.action_xoa_het) {
+            xacNhanXoaHet();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+ 
+    // ===================================================================
+    // 2. CONTEXT MENU — menu của MỘT dòng, mở bằng cách giữ lâu
+    // ===================================================================
+ 
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo info) {
+        super.onCreateContextMenu(menu, v, info);
+        if (v.getId() == R.id.lvMonAn) {
+            AdapterView.AdapterContextMenuInfo i = (AdapterView.AdapterContextMenuInfo) info;
+            menu.setHeaderTitle(danhSach.get(i.position).getTen());
+            getMenuInflater().inflate(R.menu.menu_context, menu);
+        }
+    }
+ 
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        // Vị trí dòng được giữ lâu nằm trong ContextMenuInfo, không phải trong item
+        AdapterView.AdapterContextMenuInfo info =
+                (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        if (info == null) return super.onContextItemSelected(item);
+ 
+        int viTri = info.position;
+        int id = item.getItemId();
+        if (id == R.id.ctx_sua) {
+            hienDialogThemSua(viTri);
+            return true;
+        } else if (id == R.id.ctx_xoa) {
+            xacNhanXoaMot(viTri);
+            return true;
+        }
+        return super.onContextItemSelected(item);
+    }
+ 
+    // ===================================================================
+    // 3. DIALOG
+    // ===================================================================
+ 
+    /** Hộp thoại thông báo đơn giản: chỉ có nội dung và một nút OK. */
+    private void hienChiTiet(MonAn mon) {
+        new AlertDialog.Builder(this)
+                .setTitle(mon.getTen())
+                .setMessage(getString(R.string.chi_tiet_format,
+                        mon.getMoTa(), MonAn.dinhDangGia(mon.getGia())))
+                .setPositiveButton(R.string.dong, null)   // null = chỉ đóng hộp thoại
+                .show();
+    }
+ 
+    /** Hộp thoại xác nhận: việc xóa chỉ xảy ra khi người dùng bấm Xóa. */
+    private void xacNhanXoaMot(int viTri) {
+        MonAn mon = danhSach.get(viTri);
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.xac_nhan_xoa)
+                .setMessage(getString(R.string.hoi_xoa, mon.getTen()))
+                .setPositiveButton(R.string.xoa, (d, w) -> xoaCoHoanTac(viTri))
+                .setNegativeButton(R.string.huy, null)
+                .show();
+    }
+ 
+    private void xacNhanXoaHet() {
+        if (danhSach.isEmpty()) {
+            Toast.makeText(this, R.string.danh_sach_trong, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.xac_nhan_xoa)
+                .setMessage(getString(R.string.hoi_xoa_het, danhSach.size()))
+                .setPositiveButton(R.string.xoa_het, (d, w) -> {
+                    List<MonAn> banSaoLuu = new ArrayList<>(danhSach);
+                    danhSach.clear();
+                    adapter.notifyDataSetChanged();
+                    Snackbar.make(lvMonAn, R.string.da_xoa_het, Snackbar.LENGTH_LONG)
+                            .setAction(R.string.hoan_tac, v -> {
+                                danhSach.addAll(banSaoLuu);
+                                adapter.notifyDataSetChanged();
+                            })
+                            .show();
+                })
+                .setNegativeButton(R.string.huy, null)
+                .show();
+    }
+ 
+    /** Xóa một món nhưng cho phép hoàn tác trong vài giây. */
+    private void xoaCoHoanTac(int viTri) {
+        MonAn daXoa = danhSach.remove(viTri);
+        adapter.notifyDataSetChanged();
+        Log.d(TAG, "Đã xóa " + daXoa.getTen() + " tại vị trí " + viTri);
+ 
+        Snackbar.make(lvMonAn, getString(R.string.da_xoa, daXoa.getTen()), Snackbar.LENGTH_LONG)
+                .setAction(R.string.hoan_tac, v -> {
+                    danhSach.add(viTri, daXoa);      // trả về đúng vị trí cũ
+                    adapter.notifyDataSetChanged();
+                    lvMonAn.smoothScrollToPosition(viTri);
+                })
+                .show();
+    }
+ 
+    /**
+     * Hộp thoại tự thiết kế: dùng setView để nhét một layout riêng vào.
+     * viTri == -1 nghĩa là thêm mới, ngược lại là sửa món tại vị trí đó.
+     */
+    private void hienDialogThemSua(int viTri) {
+        boolean themMoi = (viTri < 0);
+        View v = LayoutInflater.from(this).inflate(R.layout.dialog_mon_an, null, false);
+        EditText edtTen = v.findViewById(R.id.edtTen);
+        EditText edtMoTa = v.findViewById(R.id.edtMoTa);
+        EditText edtGia = v.findViewById(R.id.edtGia);
+ 
+        if (!themMoi) {
+            MonAn mon = danhSach.get(viTri);
+            edtTen.setText(mon.getTen());
+            edtMoTa.setText(mon.getMoTa());
+            edtGia.setText(String.valueOf(mon.getGia()));
+        }
+ 
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(themMoi ? R.string.them_mon : R.string.sua_mon)
+                .setView(v)
+                .setPositiveButton(R.string.luu, null)   // gán null rồi ghi đè ở dưới
+                .setNegativeButton(R.string.huy, null)
+                .create();
+ 
+        dialog.show();
+ 
+        // Mẹo quan trọng: gán lại OnClickListener SAU khi show() thì hộp thoại
+        // sẽ KHÔNG tự đóng khi dữ liệu nhập chưa hợp lệ.
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(btn -> {
+            String ten = edtTen.getText().toString().trim();
+            String moTa = edtMoTa.getText().toString().trim();
+            String giaStr = edtGia.getText().toString().trim();
+ 
+            if (ten.isEmpty()) {
+                edtTen.setError(getString(R.string.err_ten));
+                return;      // không đóng hộp thoại
+            }
+            int gia;
+            try {
+                gia = Integer.parseInt(giaStr);
+            } catch (NumberFormatException e) {
+                edtGia.setError(getString(R.string.err_gia));
+                return;
+            }
+            if (gia <= 0) {
+                edtGia.setError(getString(R.string.err_gia_duong));
+                return;
+            }
+ 
+            if (themMoi) {
+                danhSach.add(0, new MonAn(ten, moTa, gia, R.drawable.mon1));
+                lvMonAn.smoothScrollToPosition(0);
+            } else {
+                MonAn mon = danhSach.get(viTri);
+                mon.setTen(ten);
+                mon.setMoTa(moTa);
+                mon.setGia(gia);
+            }
+            adapter.notifyDataSetChanged();
+            dialog.dismiss();   // tự tay đóng khi mọi thứ đã hợp lệ
+            Toast.makeText(this, themMoi ? R.string.da_them : R.string.da_sua,
+                    Toast.LENGTH_SHORT).show();
+        });
+    }
+}
+4.1. Options menu
+onCreateOptionsMenu
+ chạy 
+một lần
+ khi màn hình được tạo; 
+getMenuInflater().inflate(...)
+ biến file XML thành menu thật.
+return true
+ trong 
+onOptionsItemSelected
+ nghĩa là 
+"tôi đã xử lý, dừng ở đây"
+.
+Dòng cuối 
+return super.onOptionsItemSelected(item);
+ rất quan trọng: nó để các mục bạn 
+không
+ xử lý (ví dụ nút Back trên thanh tiêu đề) vẫn chạy bình thường. Bỏ dòng này là một lỗi tinh vi, rất khó tìm.
+Dùng 
+if–else
+, 
+không dùng `switch`
+: từ AGP 8, 
+R.id
+ không còn là hằng số biên dịch (đã gặp ở Lab A4).
+Comparator.comparing(MonAn::getTen)
+ là *method reference*. Nếu bạn chưa quen, viết dạng lambda tường minh cũng được: 
+(a, b) -> a.getTen().compareTo(b.getTen())
+.
+4.2. Context menu — điểm khó nhất của bài
+Câu hỏi then chốt: 
+làm sao biết người dùng vừa giữ lâu dòng nào?
+ Câu trả lời nằm ở 
+AdapterContextMenuInfo
+ — Android nhét sẵn vị trí dòng vào đó rồi gửi kèm 
+MenuItem
+.
+AdapterView.AdapterContextMenuInfo info =
+        (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+int viTri = info.position;
+Lỗi gần như chắc chắn xảy ra khi nâng cấp từ A9
+App A9 có 
+lvMonAn.setOnItemLongClickListener(...)
+. Listener đó 
+nuốt
+ sự kiện giữ lâu, nên context menu sẽ không bao giờ hiện.
+Phải xóa hẳn listener cũ
+ khi chuyển sang dùng context menu.
+4.3. AlertDialog xác nhận
+setPositiveButton
+ — hành động chính (Xóa, Lưu, Đồng ý). 
+setNegativeButton
+ — hủy bỏ. 
+setNeutralButton
+ — lựa chọn thứ ba, ít dùng.
+Truyền 
+null
+ làm listener nghĩa là 
+chỉ đóng hộp thoại, không làm gì thêm
+.
+Viết lời hỏi cho đúng
+Nêu rõ 
+đối tượng
+ sẽ bị tác động: *"Bạn có chắc muốn xóa \"Phở bò tái\" khỏi thực đơn?"* tốt hơn hẳn *"Bạn có chắc không?"*.
+Nhãn nút phải là 
+động từ
+ của việc sắp làm: dùng "Xóa" thay vì "OK" — người dùng thường đọc nút trước khi đọc nội dung. Đây là quy tắc trong Material Design guidelines.
+4.4. Hộp thoại tự thiết kế — mẹo quan trọng nhất của buổi
+Listener gán qua 
+setPositiveButton
+ 
+luôn đóng hộp thoại
+ sau khi chạy xong. Nếu dữ liệu nhập chưa hợp lệ, người dùng sẽ mất hết những gì vừa gõ chỉ vì quên một ô.
+Cách xử lý: gán 
+null
+ lúc tạo, rồi 
+gán lại `OnClickListener` SAU khi gọi `show()`
+. Khi đó bạn tự quyết định lúc nào gọi 
+dialog.dismiss()
+.
+dialog.show();
+dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(btn -> {
+    if (ten.isEmpty()) {
+        edtTen.setError(getString(R.string.err_ten));
+        return;            // KHÔNG đóng hộp thoại
+    }
+    // … lưu dữ liệu …
+    dialog.dismiss();      // tự tay đóng khi mọi thứ đã hợp lệ
+});
+Hãy thử cách sai trước
+Gán listener ngay trong 
+setPositiveButton
+, để trống ô tên rồi bấm Lưu. Hộp thoại đóng mất và dữ liệu bay hết.
+Sau đó mới áp dụng cách đúng. Thấy tận mắt vấn đề thì sẽ nhớ cách giải quyết.
+4.5. Snackbar với Hoàn tác
+Tham số đầu của 
+Snackbar.make
+ là 
+một View bất kỳ
+ trong màn hình — Snackbar tự tìm khung chứa phù hợp để bám vào.
+Phải giữ lại 
+cả đối tượng lẫn vị trí
+ thì hoàn tác mới trả về đúng chỗ: 
+danhSach.add(viTri, daXoa)
+ chứ không phải 
+danhSach.add(daXoa)
+.
+Ghi chú cho Lab A13
+Khi dữ liệu đã nằm trong SQLite, mẫu "xóa rồi cho hoàn tác" cần cẩn thận hơn: hoặc xóa thật rồi chèn lại khi người dùng bấm Hoàn tác, hoặc đánh dấu "đã xóa" rồi dọn sau.
+Cách thứ hai là cách các ứng dụng thật (thùng rác của Gmail, Google Photos) vẫn làm.
+Checkpoint
+Chạy app: thanh tiêu đề có biểu tượng + và nút ba chấm; giữ lâu một dòng ra context menu đúng tên món; chọn Xóa thì có hộp thoại hỏi lại; bấm Xóa rồi bấm HOÀN TÁC thì món trở về đúng vị trí cũ.
+Phần 5. Kiểm thử (≈ 20 phút)
+#
+Thao tác
+Kết quả đúng phải thấy
+Ảnh chụp
+1
+Mở app, nhìn thanh tiêu đề
+Thấy biểu tượng + và nút ba chấm
+ 
+2
+Mở menu ba chấm
+Có đủ Sắp xếp theo tên / theo giá / Xóa tất cả
+ 
+3
+Chọn Sắp xếp theo giá
+Danh sách xếp lại tăng dần, Toast báo đã sắp xếp
+ 
+4
+Giữ lâu một dòng
+Context menu hiện, tiêu đề là tên 
+đúng
+ món đó
+ 
+5
+Chọn Xóa trong context menu
+Hộp thoại hỏi lại, nêu đúng tên món
+ 
+6
+Bấm Hủy trong hộp thoại
+Không xóa gì cả, danh sách giữ nguyên
+ 
+7
+Bấm Xóa rồi bấm HOÀN TÁC
+Món trở lại 
+đúng vị trí cũ
+, không phải cuối danh sách
+ 
+8
+Mở dialog Sửa, xóa trắng ô tên rồi bấm Lưu
+Báo lỗi tại ô tên, hộp thoại 
+không
+ đóng
+ 
+Câu hỏi phân tích
+Ở kịch bản 4, thử giữ lâu dòng thứ 3 rồi chọn Sửa. Nếu bạn lấy vị trí bằng cách khác (ví dụ một biến lưu lần bấm gần nhất) thì có gì rủi ro?
+Ở kịch bản 7, nếu dùng 
+danhSach.add(daXoa)
+ thay vì 
+danhSach.add(viTri, daXoa)
+ thì chuyện gì xảy ra?
+Ở kịch bản 8, hãy mô tả bằng lời vì sao phải gán lại listener sau 
+show()
+.
+Phần 6. Bài nâng cao (chọn ít nhất 2 bài)
+Bài
+Yêu cầu
+Gợi ý
+NC1
+Thêm 
+SearchView
+ vào menu để lọc danh sách khi đang gõ.
+<item … app:actionViewClass="androidx.appcompat.widget.SearchView" app:showAsAction="always|collapseActionView" />
+, rồi 
+setOnQueryTextListener
+.
+NC2
+Dialog chọn mức giá bằng 
+setSingleChoiceItems
+.
+Truyền mảng 
+String[]
+ và chỉ số đang chọn; nút Positive mới áp dụng lựa chọn.
+NC3
+Dùng 
+MaterialAlertDialogBuilder
+ thay cho 
+AlertDialog.Builder
+.
+Cùng API nhưng giao diện theo Material 3: bo góc, màu theo theme. Nêu khác biệt trong báo cáo.
+NC4
+Thay context menu bằng 
+BottomSheetDialog
+.
+Tạo một layout có các dòng Sửa/Xóa; hiện bằng 
+BottomSheetDialog
+. So sánh trải nghiệm với context menu.
+Phần 7. Nộp bài & thang điểm
+Repo GitHub 
+A11_<MSSV>
+ (Private, đã mời GV), ít nhất 3 commit.
+Báo cáo: bảng 8 kịch bản 
+kèm ảnh chụp từng hộp thoại
+ + trả lời 3 câu hỏi phân tích + mô tả bài nâng cao.
+Video demo ≤ 2 phút.
+Tiêu chí
+Điểm
+Options menu đủ 4 mục, hoạt động đúng
+2,0
+Context menu Sửa / Xóa, lấy đúng vị trí dòng
+2,0
+Hộp thoại xác nhận trước khi xóa, lời hỏi rõ ràng
+1,5
+Dialog tự thiết kế, 
+không đóng
+ khi dữ liệu sai
+1,5
+Snackbar Hoàn tác trả về 
+đúng vị trí cũ
+1,0
+Bảng 8 kịch bản có ảnh minh chứng
+1,0
+Bài nâng cao (1 bài × 1,0)
+1,0
+Tổng
+10
+Lưu ý khi chấm
+Mục "lời hỏi rõ ràng": hộp thoại chỉ ghi "Bạn có chắc không?" mà không nêu tên món thì trừ nửa điểm.
+Phần 8. Câu hỏi ôn tập
+Khi nào dùng 
+Toast
+, khi nào 
+Snackbar
+, khi nào 
+AlertDialog
+?
+Làm sao biết người dùng vừa giữ lâu dòng nào?
+Vì sao phải gán lại listener sau khi gọi 
+show()
+?
+Hoàn tác đúng cách cần giữ lại những gì?
+Vì sao dòng 
+return super.onOptionsItemSelected(item);
+ ở cuối lại quan trọng?
+Phụ lục. Xử lý sự cố thường gặp
+Hiện tượng
+Nguyên nhân
+Cách xử lý
+Menu không hiện trên thanh tiêu đề
+Quên 
+return true
+, hoặc theme là 
+NoActionBar
+Đổi theme, hoặc thêm 
+MaterialToolbar
+ + 
+setSupportActionBar
+Giữ lâu không ra context menu
+Chưa 
+registerForContextMenu
+, hoặc 
+setOnItemLongClickListener
+ cũ đang nuốt sự kiện
+Xóa listener cũ của Lab A9
+Context menu luôn thao tác nhầm dòng
+Đọc vị trí sai
+Lấy từ 
+AdapterContextMenuInfo.position
+Dialog đóng mất dù dữ liệu sai
+Gán listener ngay trong 
+setPositiveButton
+Gán lại sau 
+show()
+Hoàn tác xong món nhảy xuống cuối
+Dùng 
+add()
+ thay vì 
+add(viTri, daXoa)
+Giữ lại vị trí khi xóa
+Không tìm thấy lớp 
+Snackbar
+Thiếu 
+com.google.android.material
+Thêm dependency rồi Sync Now
+Context menu không có tiêu đề
+Quên 
+menu.setHeaderTitle(...)
+Thêm vào 
+onCreateContextMenu
